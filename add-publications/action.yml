@@ -1,0 +1,115 @@
+name: pygscholar
+description: Add new publications from Google scholar
+
+inputs:
+  name:
+    description: "Name of the author"
+    required: true
+    default: "Henrik Finsberg"
+  scholar_id:
+    description: "Google Scholar ID"
+    required: true
+    default: "NDPIHoEAAAAJ"  # Henrik Finsberg
+  bibdir:
+    description: "Directory to store bib item files"
+    required: false
+    default: "_publications"
+  cache_dir:
+    description: "Folder to store cache files"
+    required: false
+    default: ".pygscholar"
+  working-directory:
+    description: "Working directory"
+    required: false
+    default: "."
+  token:
+    description: "GitHub token"
+    required: true
+
+outputs:
+  has_new_publications:
+    description: "Whether we have new publications"
+    value: ${{ steps.has_new_publications.outputs.has_new_publications }}
+  title:
+    description: "Title of the new publication"
+    value: ${{ steps.has_new_publications.outputs.title }}
+  authors:
+    description: "Authors of the new publication"
+    value: ${{ steps.has_new_publications.outputs.authors }}
+  year:
+    description: "Year of the new publication"
+    value: ${{ steps.has_new_publications.outputs.year }}
+  date:
+    description: "Date of the new publication"
+    value: ${{ steps.has_new_publications.outputs.date }}
+  abstract:
+    description: "Abstract of the new publication"
+    value: ${{ steps.has_new_publications.outputs.abstract }}
+  journal:
+    description: "Journal of the new publication"
+    value: ${{ steps.has_new_publications.outputs.journal }}
+  pdf_url:
+    description: "URL to the PDF of the new publication"
+    value: ${{ steps.has_new_publications.outputs.pdf_url }}
+
+
+runs:
+  using: composite
+  steps:
+    - name: Install dependencies
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pygscholar
+
+    - name: Get new publications
+      working-directory: ${{ inputs.working-directory }}
+      shell: bash
+      run: scholar list-new-author-publications --overwrite --cache-dir "${{ inputs.cache_dir }}" "${{ inputs.name }}" --save-diff "diff.json"
+
+    - name: Check if we have new publications
+      working-directory: ${{ inputs.working-directory }}
+      id: has_new_publications
+      shell: bash
+      run: |
+        export NEW_PUBS=$(python -c "import json; print(len(json.load(open('diff.json'))))")
+        if [ $NEW_PUBS -gt 0 ]; then
+            echo "has_new_publications=true" >> $GITHUB_OUTPUT
+            echo "title=$(python -c "import json; print(json.load(open('diff.json'))[0].get('title', ''))")" >> $GITHUB_OUTPUT
+            echo "authors=$(python -c "import json; print(json.load(open('diff.json'))[0].get('authors', ''))")" >> $GITHUB_OUTPUT
+            echo "year=$(python -c "import json; print(json.load(open('diff.json'))[0].get('year', ''))")" >> $GITHUB_OUTPUT
+            echo "date=$(python -c "import json; print(json.load(open('diff.json'))[0].get('date', ''))")" >> $GITHUB_OUTPUT
+            echo "abstract=$(python -c "import json; print(json.load(open('diff.json'))[0].get('abstract', ''))")" >> $GITHUB_OUTPUT
+            echo "journal=$(python -c "import json; print(json.load(open('diff.json'))[0].get('journal', ''))")" >> $GITHUB_OUTPUT
+            echo "pdf_url=$(python -c "import json; print(json.load(open('diff.json'))[0].get('pdf_url', ''))")" >> $GITHUB_OUTPUT          
+        else
+            echo "has_new_publications=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Create bibitem
+      working-directory: ${{ inputs.working-directory }}
+      if: ${{ steps.has_new_publications.outputs.has_new_publications == 'true' }}
+      shell: bash
+      run: python add-publications/create_bibitem.py diff.json ${{ inputs.bibdir }}
+
+    - name: Commit report
+      working-directory: ${{ inputs.working-directory }}
+      if: ${{ steps.has_new_publications.outputs.has_new_publications == 'true' }}
+      shell: bash
+      run: |
+        git config --global user.name 'SholarBot'
+        git config --global user.email 'scholarbot@users.noreply.github.com'
+        git checkout -B scholar-bot-update-$(date +%Y-%m-%d)
+        git add ${{ inputs.cache_dir }} ${{ inputs.bibdir }}
+        git commit -m "Update report"
+        git push origin scholar-bot-update-$(date +%Y-%m-%d) -f
+
+    - name: Create pull request
+      if: ${{ steps.has_new_publications.outputs.has_new_publications == 'true' }}
+      shell: bash
+      run: |
+        python add-publications/create_pr_body.py diff.json > msg
+        export msg=$(cat msg) ; gh pr create -B main -H scholar-bot-update-$(date +%Y-%m-%d) --title 'Merge scholar-bot-update into main' --body "$msg"
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
