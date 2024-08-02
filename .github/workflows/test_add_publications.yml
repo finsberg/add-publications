@@ -2,7 +2,8 @@ name: Scholar Bot
 on:
   push:
     branches: [main]
-
+  schedule:
+    - cron: '0 8 * * 1'  # Run every Monday at 08:00
 
   # This workflow can be executed inside another workfow file
   workflow_call:
@@ -33,6 +34,6 @@ jobs:
         working-directory: "."
         token: ${{ secrets.GITHUB_TOKEN }}
         bibdir: "_publications"
-    - run: gh pr close scholar-bot-update-$(date +%Y-%m-%d) --delet-branch
+    - run: gh pr close scholar-bot-update-$(date +%Y-%m-%d) --delete-branch
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
