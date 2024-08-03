@@ -82,7 +82,7 @@ runs:
             echo "date=$(python -c "import json; print(json.load(open('diff.json'))[0].get('date', ''))")" >> $GITHUB_OUTPUT
             echo "abstract=$(python -c "import json; print(json.load(open('diff.json'))[0].get('abstract', ''))")" >> $GITHUB_OUTPUT
             echo "journal=$(python -c "import json; print(json.load(open('diff.json'))[0].get('journal', ''))")" >> $GITHUB_OUTPUT
-            echo "pdf_url=$(python -c "import json; print(json.load(open('diff.json'))[0].get('pdf_url', ''))")" >> $GITHUB_OUTPUT          
+            echo "pdf_url=$(python -c "import json; print(json.load(open('diff.json'))[0].get('pdf_url', ''))")" >> $GITHUB_OUTPUT
         else
             echo "has_new_publications=false" >> $GITHUB_OUTPUT
         fi

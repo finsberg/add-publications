@@ -2,13 +2,13 @@
 
 This repository contains an action for creating new bib items for your academic page
 
-Example usage 
+Example usage
 ```yml
 name: Scholar Bot
 
 on:
   schedule:
-    - cron: "0 8 * * 1" # Run every Monday at 08:00 
+    - cron: "0 8 * * 1" # Run every Monday at 08:00
 
 jobs:
   scholar:

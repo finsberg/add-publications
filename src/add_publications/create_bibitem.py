@@ -24,9 +24,7 @@ authors:': '{authors}'
 def main() -> int:
     parser = argparse.ArgumentParser(description="Converts a JSON to a markdown file.")
     parser.add_argument("json_file", type=Path, help="The JSON file to convert.")
-    parser.add_argument(
-        "outdir", type=Path, help="Outut directory for the bibtem files."
-    )
+    parser.add_argument("outdir", type=Path, help="Outut directory for the bibtem files.")
 
     args = parser.parse_args()
     if not args.json_file.exists():
