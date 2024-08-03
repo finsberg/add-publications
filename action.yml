@@ -56,13 +56,12 @@ outputs:
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v4
     - name: Install dependencies
       working-directory: ${{ inputs.working-directory }}
       shell: bash
       run: |
         python -m pip install --upgrade pip
-        python -m pip install pygscholar
+        python -m pip install pygscholar git+https://github.com/finsberg/add-publications.git
 
     - name: Get new publications
       working-directory: ${{ inputs.working-directory }}
@@ -92,7 +91,7 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       if: ${{ steps.has_new_publications.outputs.has_new_publications == 'true' }}
       shell: bash
-      run: python create_bibitem.py diff.json ${{ inputs.bibdir }}
+      run: create-bibitem diff.json ${{ inputs.bibdir }}
 
     - name: Commit report
       working-directory: ${{ inputs.working-directory }}
@@ -110,7 +109,7 @@ runs:
       if: ${{ steps.has_new_publications.outputs.has_new_publications == 'true' }}
       shell: bash
       run: |
-        python create_pr_body.py diff.json > msg
+        create-pr-body diff.json > msg
         export msg=$(cat msg) ; gh pr create -B main -H scholar-bot-update-$(date +%Y-%m-%d) --title 'Merge scholar-bot-update into main' --body "$msg"
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
