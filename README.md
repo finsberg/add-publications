@@ -1,8 +1,6 @@
-# Actions
+# Add publications
 
-This repository contains a collection of m GitHub actions
-
-## Add publications
+This repository contains an action for creating new bib items for your academic page
 
 Example usage 
 ```yml

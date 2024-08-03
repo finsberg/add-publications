@@ -26,7 +26,7 @@ jobs:
     - name: Create _publications directory
       run: mkdir -p _publications
     - id: pygscholar
-      uses: ./add-publications
+      uses: ./
       with:
         name: "Henrik Finsberg"
         scholar_id: "NDPIHoEAAAAJ"
