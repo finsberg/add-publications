@@ -1,6 +1,6 @@
 # Add publications
 
-This repository contains an action for creating new bib items for your academic page
+This repository contains an action for creating new bib items for your academic page. This is e.g used in https://github.com/finsberg/finsberg.github.io
 
 Example usage
 ```yml
@@ -26,7 +26,7 @@ jobs:
     - name: Create _publications directory
       run: mkdir -p _publications
     - id: pygscholar
-      uses: ./add-publications
+      uses: finsberg/add-publications@main
       with:
         name: "Henrik Finsberg"
         scholar_id: "NDPIHoEAAAAJ"
