@@ -91,7 +91,7 @@ runs:
       working-directory: ${{ inputs.working-directory }}
       if: ${{ steps.has_new_publications.outputs.has_new_publications == 'true' }}
       shell: bash
-      run: python add-publications/create_bibitem.py diff.json ${{ inputs.bibdir }}
+      run: python create_bibitem.py diff.json ${{ inputs.bibdir }}
 
     - name: Commit report
       working-directory: ${{ inputs.working-directory }}
@@ -109,7 +109,7 @@ runs:
       if: ${{ steps.has_new_publications.outputs.has_new_publications == 'true' }}
       shell: bash
       run: |
-        python add-publications/create_pr_body.py diff.json > msg
+        python create_pr_body.py diff.json > msg
         export msg=$(cat msg) ; gh pr create -B main -H scholar-bot-update-$(date +%Y-%m-%d) --title 'Merge scholar-bot-update into main' --body "$msg"
       env:
         GITHUB_TOKEN: ${{ inputs.token }}
