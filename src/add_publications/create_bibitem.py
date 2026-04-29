@@ -13,7 +13,7 @@ excerpt: '{short_description}'
 date: {date}
 venue: '{journal}'
 paperurl: '{url}'
-authors:': '{authors}'
+authors: '{authors}'
 ---
 
 {abstract}
@@ -22,9 +22,9 @@ authors:': '{authors}'
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Converts a JSON to a markdown file.")
+    parser = argparse.ArgumentParser(description="Converts a JSON to markdown files.")
     parser.add_argument("json_file", type=Path, help="The JSON file to convert.")
-    parser.add_argument("outdir", type=Path, help="Outut directory for the bibtem files.")
+    parser.add_argument("outdir", type=Path, help="Output directory for the bibitem files.")
 
     args = parser.parse_args()
     if not args.json_file.exists():
@@ -40,34 +40,38 @@ def main() -> int:
         print("The JSON file is empty.")
         return 1
 
-    data = data[0]
+    # Loop through ALL publications
+    for item in data:
+        title = item.get("title", "")
+        date = item.get("date", "")
+        if date == "":
+            # If the date is not provided, use the current date
+            date = datetime.datetime.now().strftime("%Y-%m-%d")
+        date = date.replace("/", "-")
+        journal = item.get("journal", "")
+        url = item.get("pdf_url", "")
+        authors = item.get("authors", "")
+        abstract = item.get("abstract", "")
+        short_description = abstract.split(".")[0] if abstract else ""
+        slug = "-".join(title.lower().replace(" ", "-")[:30].split("-")[:-1])
 
-    title = data.get("title", "")
-    date = data.get("date", "")
-    if date == "":
-        # If the date is not provided, use the current date
-        date = datetime.datetime.now().strftime("%Y-%m-%d")
-    date = date.replace("/", "-")
-    journal = data.get("journal", "")
-    url = data.get("pdf_url", "")
-    authors = data.get("authors", "")
-    abstract = data.get("abstract", "")
-    short_description = abstract.split(".")[0]
-    slug = "-".join(title.lower().replace(" ", "-")[:30].split("-")[:-1])
+        # Fallback slug if the title is very short
+        if not slug:
+            slug = title.lower().replace(" ", "-")[:30]
 
-    content = template.format(
-        title=title,
-        date=date,
-        journal=journal,
-        url=url,
-        authors=authors,
-        abstract=abstract,
-        short_description=short_description,
-        slug=slug,
-    )
-    out_file = args.outdir / f"{date}-{slug}.md"
-    out_file.write_text(content)
-    print(f"File written to {out_file}")
+        content = template.format(
+            title=title,
+            date=date,
+            journal=journal,
+            url=url,
+            authors=authors,
+            abstract=abstract,
+            short_description=short_description,
+            slug=slug,
+        )
+        out_file = args.outdir / f"{date}-{slug}.md"
+        out_file.write_text(content)
+        print(f"File written to {out_file}")
 
     return 0
 
